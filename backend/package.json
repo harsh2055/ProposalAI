@@ -1,0 +1,35 @@
+{
+  "name": "proposalai-backend",
+  "version": "1.0.0",
+  "description": "ProposalAI Backend API",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "db:generate": "npx prisma@5.22.0 generate",
+    "db:push": "npx prisma@5.22.0 db push",
+    "db:migrate": "npx prisma@5.22.0 migrate deploy",
+    "db:studio": "npx prisma@5.22.0 studio"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.9.0",
+    "@prisma/client": "5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.14.0",
+    "stripe": "^14.7.0",
+    "uuid": "^9.0.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "prisma": "5.22.0"
+  }
+}

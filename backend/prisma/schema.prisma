@@ -1,0 +1,159 @@
+// ProposalAI - Prisma Database Schema
+// Compatible with Prisma v5.x
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+model User {
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String
+  avatar         String?
+  role           Role           @default(USER)
+  emailVerified  Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  clients        Client[]
+  proposals      Proposal[]
+  subscription   Subscription?
+  usageLog       UsageLog[]
+
+  @@index([email])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ─── Clients ─────────────────────────────────────────────────────────────────
+model Client {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String
+  company     String
+  email       String
+  phone       String?
+  projectType String?
+  budget      String?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proposals   Proposal[]
+
+  @@index([userId])
+}
+
+// ─── Proposals ───────────────────────────────────────────────────────────────
+model Proposal {
+  id             String          @id @default(cuid())
+  userId         String
+  clientId       String?
+  title          String
+  template       TemplateType    @default(CUSTOM)
+  status         ProposalStatus  @default(DRAFT)
+
+  projectOverview  String?  @db.Text
+  scopeOfWork      String?  @db.Text
+  deliverables     String?  @db.Text
+  timeline         String?  @db.Text
+  pricing          String?  @db.Text
+  terms            String?  @db.Text
+  closingStatement String?  @db.Text
+
+  projectDescription String?  @db.Text
+  estimatedBudget    String?
+  projectTimeline    String?
+  additionalNotes    String?  @db.Text
+
+  shareToken     String?         @unique @default(cuid())
+  isPublic       Boolean         @default(false)
+
+  aiModel        String?
+  tokensUsed     Int?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([shareToken])
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  ARCHIVED
+}
+
+enum TemplateType {
+  CUSTOM
+  WEB_DEVELOPMENT
+  MOBILE_APP
+  MARKETING_CAMPAIGN
+  SAAS_DEVELOPMENT
+  UI_UX_DESIGN
+}
+
+// ─── Subscriptions ───────────────────────────────────────────────────────────
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  plan                 PlanType           @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+}
+
+enum PlanType {
+  FREE
+  PRO
+  AGENCY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+// ─── Usage Tracking ──────────────────────────────────────────────────────────
+model UsageLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
